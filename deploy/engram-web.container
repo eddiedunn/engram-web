@@ -1,0 +1,18 @@
+[Unit]
+Description=Engram Web Frontend
+After=engram.service
+
+[Container]
+Image=localhost/engram-web:latest
+ContainerName=engram-web
+Network=gpu-services
+PublishPort=3000:80
+HealthCmd=curl -f http://localhost/
+HealthInterval=30s
+
+[Service]
+Restart=always
+TimeoutStartSec=120
+
+[Install]
+WantedBy=default.target
