@@ -213,11 +213,11 @@ For detailed deployment instructions, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.m
 
 ## Infrastructure Management
 
-This service is deployed via [starblue-infra](https://github.com/starblue/starblue-infra):
+This service is deployed via your infrastructure repository:
 - **Role**: `roles/engram_web`
 - **Playbook**: `playbooks/deploy-engram-web.yml`
 
-Ansible automation, container builds, and infrastructure configuration are centrally managed in the starblue-infra repository. This repository contains only the application code and local deployment reference files (Dockerfile and Quadlet template).
+Ansible automation, container builds, and infrastructure configuration are centrally managed in your infrastructure repository. This repository contains only the application code and local deployment reference files (Dockerfile and Quadlet template).
 
 ## Configuration Options
 
