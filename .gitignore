@@ -16,6 +16,9 @@ dist
 dist-ssr
 *.local
 
+# Ensure src/lib is tracked (may be excluded by global gitignore rules)
+!src/lib/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
