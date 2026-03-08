@@ -100,7 +100,13 @@ export class EngramClient {
 
         try {
           errorData = await response.json();
-          errorMessage = errorData.message || errorData.detail || errorMessage;
+          if (typeof errorData.message === 'string') {
+            errorMessage = errorData.message;
+          } else if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else if (Array.isArray(errorData.detail)) {
+            errorMessage = errorData.detail.map((e: any) => e.msg || String(e)).join(', ');
+          }
         } catch {
           // If response is not JSON, use status text
           errorMessage = response.statusText || errorMessage;
@@ -154,7 +160,8 @@ export class EngramClient {
    * GET /search
    */
   async search(params: SearchParams): Promise<SearchResult[]> {
-    const queryString = this.buildQueryString(params);
+    const { query, ...rest } = params;
+    const queryString = this.buildQueryString({ q: query, ...rest });
     return this.request<SearchResult[]>(`/search${queryString}`);
   }
 
