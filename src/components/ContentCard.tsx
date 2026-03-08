@@ -64,11 +64,11 @@ export function ContentCard({ result, searchTerm }: ContentCardProps) {
   const { content, chunk_text, chunk_index, score } = result;
 
   const handleTitleClick = () => {
-    navigate(`/content/${content.id}`);
+    navigate(`/content/${content.content_id}`);
   };
 
   const handleViewFull = () => {
-    navigate(`/content/${content.id}`);
+    navigate(`/content/${content.content_id}`);
   };
 
   // Truncate chunk text to 150 characters
