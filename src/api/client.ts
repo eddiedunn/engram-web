@@ -73,7 +73,7 @@ export class EngramClient {
   private baseUrl: string;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || import.meta.env.VITE_ENGRAM_API_URL || 'http://localhost:8800/api/v1';
+    this.baseUrl = baseUrl || import.meta.env.VITE_ENGRAM_API_URL || '/api/v1';
   }
 
   /**
