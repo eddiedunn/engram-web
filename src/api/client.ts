@@ -1,5 +1,6 @@
 import type {
   Content,
+  ContentListResponse,
   SearchResult,
   SearchRequest,
   HybridSearchRequest,
@@ -199,9 +200,9 @@ export class EngramClient {
    * List content with optional filters
    * GET /content
    */
-  async listContent(params: ListParams = {}): Promise<Content[]> {
+  async listContent(params: ListParams = {}): Promise<ContentListResponse> {
     const queryString = this.buildQueryString(params);
-    return this.request<Content[]>(`/content${queryString}`);
+    return this.request<ContentListResponse>(`/content${queryString}`);
   }
 
   /**

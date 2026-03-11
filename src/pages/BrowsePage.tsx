@@ -19,7 +19,7 @@ import type { ContentType } from '@/api/types';
 import type { Content } from '@/api/types';
 
 /**
- * Sort options for content list
+ * Sort options for content list (applied client-side to the current page)
  */
 type SortOption = 'newest' | 'oldest' | 'title-az' | 'most-chunks';
 
@@ -51,7 +51,7 @@ function formatDate(dateString: string): string {
 }
 
 /**
- * Sort content based on selected option
+ * Sort content based on selected option (operates on current page items only)
  */
 function sortContent(content: Content[], sortOption: SortOption): Content[] {
   const sorted = [...content];
@@ -80,9 +80,10 @@ function sortContent(content: Content[], sortOption: SortOption): Content[] {
  * Route: /browse
  *
  * Features:
- * - Paginated grid/list of all content (50 per page)
- * - Filter controls: content type dropdown, tags multi-select
- * - Sort controls: newest/oldest/title/chunks
+ * - Server-side pagination (50 items per page, uses limit/offset)
+ * - Total count from API response envelope
+ * - Filter controls: content type dropdown
+ * - Sort controls: newest/oldest/title/chunks (client-side, within current page)
  * - URL sync for filters and page
  * - Pagination controls at bottom
  * - Each item shows: title, type, created date, chunk count, tags
@@ -108,7 +109,7 @@ export function BrowsePage() {
   const [sortOption, setSortOption] = useState<SortOption>(
     sortParam || 'newest'
   );
-  const [selectedTags, setSelectedTags] = useState<string[]>(
+  const [selectedTags] = useState<string[]>(
     tagsParam ? tagsParam.split(',') : []
   );
 
@@ -116,21 +117,23 @@ export function BrowsePage() {
   const ITEMS_PER_PAGE = 50;
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-  // Fetch content with current filters
-  const { data: allContent, isLoading, error } = useContentList({
+  // Fetch current page from server
+  const { data: response, isLoading, error } = useContentList({
     content_type: contentType,
     tags: selectedTags.length > 0 ? selectedTags : undefined,
+    limit: ITEMS_PER_PAGE,
+    offset,
   });
 
-  // Sort and paginate content
-  const sortedContent = useMemo(() => {
-    if (!allContent) return [];
-    return sortContent(allContent, sortOption);
-  }, [allContent, sortOption]);
+  // Derive totals from the response envelope
+  const total = response?.total ?? 0;
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-  const totalItems = sortedContent.length;
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-  const paginatedContent = sortedContent.slice(offset, offset + ITEMS_PER_PAGE);
+  // Sort current page items client-side
+  const pageItems = useMemo(() => {
+    if (!response?.items) return [];
+    return sortContent(response.items, sortOption);
+  }, [response?.items, sortOption]);
 
   // Update URL when filters change
   useEffect(() => {
@@ -160,19 +163,19 @@ export function BrowsePage() {
     document.title = 'Browse Content - Engram Knowledge Base';
   }, []);
 
-  // Handle filter changes
+  // Handle filter changes — reset to page 1
   const handleContentTypeChange = (value: string) => {
     if (value === 'all') {
       setContentType(undefined);
     } else {
       setContentType(value as ContentType);
     }
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1);
   };
 
   const handleSortChange = (value: string) => {
     setSortOption(value as SortOption);
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1);
   };
 
   // Handle content click
@@ -186,7 +189,7 @@ export function BrowsePage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Generate page numbers for pagination
+  // Generate page numbers for pagination controls
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const maxVisible = 7;
@@ -196,14 +199,12 @@ export function BrowsePage() {
         pages.push(i);
       }
     } else {
-      // Always show first page
       pages.push(1);
 
       if (currentPage > 3) {
         pages.push('...');
       }
 
-      // Show pages around current page
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
 
@@ -215,7 +216,6 @@ export function BrowsePage() {
         pages.push('...');
       }
 
-      // Always show last page
       pages.push(totalPages);
     }
 
@@ -230,7 +230,7 @@ export function BrowsePage() {
           <div className="mb-4">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Browse Content</h1>
             <p className="text-muted-foreground mt-1">
-              {totalItems} {totalItems === 1 ? 'item' : 'items'}
+              {isLoading ? 'Loading...' : `${total} ${total === 1 ? 'item' : 'items'}`}
             </p>
           </div>
 
@@ -289,14 +289,13 @@ export function BrowsePage() {
         )}
 
         {/* Empty State */}
-        {!isLoading && !error && paginatedContent.length === 0 && (
+        {!isLoading && !error && pageItems.length === 0 && (
           <EmptyState
             variant={(contentType || selectedTags.length > 0) ? 'filter' : 'content'}
             onAction={
               (contentType || selectedTags.length > 0)
                 ? () => {
                     setContentType(undefined);
-                    setSelectedTags([]);
                     setCurrentPage(1);
                   }
                 : undefined
@@ -305,10 +304,10 @@ export function BrowsePage() {
         )}
 
         {/* Content Grid */}
-        {!isLoading && !error && paginatedContent.length > 0 && (
+        {!isLoading && !error && pageItems.length > 0 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {paginatedContent.map((content) => (
+              {pageItems.map((content) => (
                 <Card
                   key={content.id}
                   className="cursor-pointer hover:shadow-lg transition-shadow min-h-[44px]"

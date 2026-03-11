@@ -43,6 +43,16 @@ export interface Content {
 }
 
 /**
+ * Paginated response envelope for content list
+ */
+export interface ContentListResponse {
+  items: Content[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/**
  * Search result interface representing a single result from a search query
  */
 export interface SearchResult {
