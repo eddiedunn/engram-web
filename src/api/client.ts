@@ -31,6 +31,8 @@ export interface ListParams {
   content_type?: ContentType;
   /** Filter by tags */
   tags?: string[];
+  /** Filter by source (author) */
+  source?: string;
   /** Maximum number of results to return */
   limit?: number;
   /** Offset for pagination */
@@ -213,6 +215,17 @@ export class EngramClient {
     return this.request<void>(`/content/${contentId}`, {
       method: 'DELETE',
     });
+  }
+
+  /**
+   * Get unique content sources (authors) grouped by content type
+   * GET /content/sources
+   */
+  async getSources(contentType?: ContentType): Promise<Record<string, string[]>> {
+    const queryString = this.buildQueryString(
+      contentType ? { content_type: contentType } : {}
+    );
+    return this.request<Record<string, string[]>>(`/content/sources${queryString}`);
   }
 
   /**

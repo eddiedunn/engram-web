@@ -31,13 +31,22 @@ export interface SearchBarProps {
 
 const AVAILABLE_TAGS = ['Important', 'Research', 'Tutorial', 'Reference', 'Project'];
 const CONTENT_TYPES: ContentType[] = [
-  'YOUTUBE',
-  'ARTICLE',
-  'PODCAST',
-  'DOCUMENT',
-  'NOTE',
-  'OTHER',
+  'youtube',
+  'article',
+  'podcast',
+  'document',
+  'note',
+  'other',
 ];
+
+const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
+  youtube: 'YouTube',
+  article: 'Article',
+  podcast: 'Podcast',
+  document: 'Document',
+  note: 'Note',
+  other: 'Other',
+};
 
 export function SearchBar({
   onSearch,
@@ -182,7 +191,7 @@ export function SearchBar({
               <SelectItem value="all">All types</SelectItem>
               {CONTENT_TYPES.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {type.charAt(0) + type.slice(1).toLowerCase()}
+                  {CONTENT_TYPE_LABELS[type]}
                 </SelectItem>
               ))}
             </SelectContent>

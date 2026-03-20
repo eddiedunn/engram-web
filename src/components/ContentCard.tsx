@@ -16,14 +16,26 @@ export interface ContentCardProps {
  */
 function getContentTypeColor(contentType: ContentType): string {
   const colors: Record<ContentType, string> = {
-    YOUTUBE: 'bg-red-500 text-white hover:bg-red-600',
-    ARTICLE: 'bg-blue-500 text-white hover:bg-blue-600',
-    PODCAST: 'bg-purple-500 text-white hover:bg-purple-600',
-    DOCUMENT: 'bg-green-500 text-white hover:bg-green-600',
-    NOTE: 'bg-amber-500 text-white hover:bg-amber-600',
-    OTHER: 'bg-gray-500 text-white hover:bg-gray-600',
+    youtube: 'bg-red-500 text-white hover:bg-red-600',
+    article: 'bg-blue-500 text-white hover:bg-blue-600',
+    podcast: 'bg-purple-500 text-white hover:bg-purple-600',
+    document: 'bg-green-500 text-white hover:bg-green-600',
+    note: 'bg-amber-500 text-white hover:bg-amber-600',
+    other: 'bg-gray-500 text-white hover:bg-gray-600',
   };
   return colors[contentType];
+}
+
+function formatContentType(type: ContentType): string {
+  const labels: Record<ContentType, string> = {
+    youtube: 'YouTube',
+    article: 'Article',
+    podcast: 'Podcast',
+    document: 'Document',
+    note: 'Note',
+    other: 'Other',
+  };
+  return labels[type] || type;
 }
 
 /**
@@ -87,7 +99,7 @@ export function ContentCard({ result, searchTerm }: ContentCardProps) {
             </button>
           </div>
           <Badge className={`${getContentTypeColor(content.content_type)} shrink-0`}>
-            {content.content_type}
+            {formatContentType(content.content_type)}
           </Badge>
         </div>
 

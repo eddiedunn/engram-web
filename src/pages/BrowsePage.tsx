@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useContentList } from '@/hooks/useContentList';
+import { useSources } from '@/hooks/useSources';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,14 +29,26 @@ type SortOption = 'newest' | 'oldest' | 'title-az' | 'most-chunks';
  */
 function getContentTypeColor(contentType: ContentType): string {
   const colors: Record<ContentType, string> = {
-    YOUTUBE: 'bg-red-500 text-white hover:bg-red-600',
-    ARTICLE: 'bg-blue-500 text-white hover:bg-blue-600',
-    PODCAST: 'bg-purple-500 text-white hover:bg-purple-600',
-    DOCUMENT: 'bg-green-500 text-white hover:bg-green-600',
-    NOTE: 'bg-amber-500 text-white hover:bg-amber-600',
-    OTHER: 'bg-gray-500 text-white hover:bg-gray-600',
+    youtube: 'bg-red-500 text-white hover:bg-red-600',
+    article: 'bg-blue-500 text-white hover:bg-blue-600',
+    podcast: 'bg-purple-500 text-white hover:bg-purple-600',
+    document: 'bg-green-500 text-white hover:bg-green-600',
+    note: 'bg-amber-500 text-white hover:bg-amber-600',
+    other: 'bg-gray-500 text-white hover:bg-gray-600',
   };
   return colors[contentType];
+}
+
+function formatContentType(type: ContentType): string {
+  const labels: Record<ContentType, string> = {
+    youtube: 'YouTube',
+    article: 'Article',
+    podcast: 'Podcast',
+    document: 'Document',
+    note: 'Note',
+    other: 'Other',
+  };
+  return labels[type] || type;
 }
 
 /**
@@ -98,6 +111,7 @@ export function BrowsePage() {
   const typeParam = searchParams.get('type') as ContentType | null;
   const sortParam = searchParams.get('sort') as SortOption | null;
   const tagsParam = searchParams.get('tags');
+  const sourceParam = searchParams.get('source');
 
   // State
   const [currentPage, setCurrentPage] = useState(
@@ -105,6 +119,9 @@ export function BrowsePage() {
   );
   const [contentType, setContentType] = useState<ContentType | undefined>(
     typeParam || undefined
+  );
+  const [source, setSource] = useState<string | undefined>(
+    sourceParam || undefined
   );
   const [sortOption, setSortOption] = useState<SortOption>(
     sortParam || 'newest'
@@ -117,9 +134,14 @@ export function BrowsePage() {
   const ITEMS_PER_PAGE = 50;
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
+  // Fetch sources for the selected content type
+  const { data: sourcesData } = useSources(contentType);
+  const availableSources = contentType && sourcesData ? (sourcesData[contentType] || []) : [];
+
   // Fetch current page from server
   const { data: response, isLoading, error } = useContentList({
     content_type: contentType,
+    source,
     tags: selectedTags.length > 0 ? selectedTags : undefined,
     limit: ITEMS_PER_PAGE,
     offset,
@@ -147,6 +169,10 @@ export function BrowsePage() {
       newParams.set('type', contentType);
     }
 
+    if (source) {
+      newParams.set('source', source);
+    }
+
     if (sortOption !== 'newest') {
       newParams.set('sort', sortOption);
     }
@@ -156,7 +182,7 @@ export function BrowsePage() {
     }
 
     setSearchParams(newParams);
-  }, [currentPage, contentType, sortOption, selectedTags, setSearchParams]);
+  }, [currentPage, contentType, source, sortOption, selectedTags, setSearchParams]);
 
   // Set page title
   useEffect(() => {
@@ -169,6 +195,16 @@ export function BrowsePage() {
       setContentType(undefined);
     } else {
       setContentType(value as ContentType);
+    }
+    setSource(undefined);
+    setCurrentPage(1);
+  };
+
+  const handleSourceChange = (value: string) => {
+    if (value === 'all') {
+      setSource(undefined);
+    } else {
+      setSource(value);
     }
     setCurrentPage(1);
   };
@@ -245,15 +281,33 @@ export function BrowsePage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All types</SelectItem>
-                  <SelectItem value="YOUTUBE">YouTube</SelectItem>
-                  <SelectItem value="ARTICLE">Article</SelectItem>
-                  <SelectItem value="PODCAST">Podcast</SelectItem>
-                  <SelectItem value="DOCUMENT">Document</SelectItem>
-                  <SelectItem value="NOTE">Note</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
+                  <SelectItem value="youtube">YouTube</SelectItem>
+                  <SelectItem value="article">Article</SelectItem>
+                  <SelectItem value="podcast">Podcast</SelectItem>
+                  <SelectItem value="document">Document</SelectItem>
+                  <SelectItem value="note">Note</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Source Filter (shown when content type is selected) */}
+            {contentType && availableSources.length > 0 && (
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block">Source</label>
+                <Select value={source || 'all'} onValueChange={handleSourceChange}>
+                  <SelectTrigger className="min-h-[44px]">
+                    <SelectValue placeholder="All sources" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All sources</SelectItem>
+                    {availableSources.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Sort Control */}
             <div className="flex-1">
@@ -291,11 +345,12 @@ export function BrowsePage() {
         {/* Empty State */}
         {!isLoading && !error && pageItems.length === 0 && (
           <EmptyState
-            variant={(contentType || selectedTags.length > 0) ? 'filter' : 'content'}
+            variant={(contentType || source || selectedTags.length > 0) ? 'filter' : 'content'}
             onAction={
-              (contentType || selectedTags.length > 0)
+              (contentType || source || selectedTags.length > 0)
                 ? () => {
                     setContentType(undefined);
+                    setSource(undefined);
                     setCurrentPage(1);
                   }
                 : undefined
@@ -319,7 +374,7 @@ export function BrowsePage() {
                         {content.title}
                       </h3>
                       <Badge className={`${getContentTypeColor(content.content_type)} shrink-0`}>
-                        {content.content_type}
+                        {formatContentType(content.content_type)}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -327,6 +382,12 @@ export function BrowsePage() {
                   <CardContent className="p-4 sm:p-6">
                     {/* Metadata */}
                     <div className="space-y-2 text-sm text-muted-foreground">
+                      {content.metadata?.author && (
+                        <div className="flex items-center justify-between">
+                          <span>Author:</span>
+                          <span className="font-medium truncate ml-2">{content.metadata.author}</span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <span>Created:</span>
                         <span className="font-medium">{formatDate(content.created_at)}</span>

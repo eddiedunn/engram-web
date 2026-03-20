@@ -2,12 +2,12 @@
  * Content type enum defining the types of content that can be stored
  */
 export const ContentType = {
-  YOUTUBE: 'YOUTUBE',
-  ARTICLE: 'ARTICLE',
-  PODCAST: 'PODCAST',
-  DOCUMENT: 'DOCUMENT',
-  NOTE: 'NOTE',
-  OTHER: 'OTHER',
+  YOUTUBE: 'youtube',
+  ARTICLE: 'article',
+  PODCAST: 'podcast',
+  DOCUMENT: 'document',
+  NOTE: 'note',
+  OTHER: 'other',
 } as const;
 
 export type ContentType = typeof ContentType[keyof typeof ContentType];
