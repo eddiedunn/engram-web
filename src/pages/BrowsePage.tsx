@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useContentList } from '@/hooks/useContentList';
@@ -106,29 +106,42 @@ export function BrowsePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Parse URL parameters
-  const pageParam = searchParams.get('page');
-  const typeParam = searchParams.get('type') as ContentType | null;
-  const sortParam = searchParams.get('sort') as SortOption | null;
-  const tagsParam = searchParams.get('tags');
-  const sourceParam = searchParams.get('source');
+  // Derive filter state directly from URL search params so that
+  // browser back/forward navigation always reflects correctly.
+  const contentType = (searchParams.get('type') as ContentType) || undefined;
+  const source = searchParams.get('source') || undefined;
+  const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
 
-  // State
-  const [currentPage, setCurrentPage] = useState(
-    pageParam ? parseInt(pageParam, 10) : 1
-  );
-  const [contentType, setContentType] = useState<ContentType | undefined>(
-    typeParam || undefined
-  );
-  const [source, setSource] = useState<string | undefined>(
-    sourceParam || undefined
-  );
+  // Sort and tags remain local state (not critical for back-button navigation)
   const [sortOption, setSortOption] = useState<SortOption>(
-    sortParam || 'newest'
+    (searchParams.get('sort') as SortOption) || 'newest'
   );
   const [selectedTags] = useState<string[]>(
-    tagsParam ? tagsParam.split(',') : []
+    searchParams.get('tags') ? searchParams.get('tags')!.split(',') : []
   );
+
+  // Helper to build new search params, preserving sort/tags from current state
+  const buildParams = useCallback((overrides: {
+    page?: number;
+    type?: string;
+    source?: string;
+  }) => {
+    const newParams = new URLSearchParams();
+
+    const page = overrides.page ?? currentPage;
+    if (page > 1) newParams.set('page', page.toString());
+
+    const type = 'type' in overrides ? overrides.type : (contentType || '');
+    if (type) newParams.set('type', type);
+
+    const src = 'source' in overrides ? overrides.source : (source || '');
+    if (src) newParams.set('source', src);
+
+    if (sortOption !== 'newest') newParams.set('sort', sortOption);
+    if (selectedTags.length > 0) newParams.set('tags', selectedTags.join(','));
+
+    return newParams;
+  }, [currentPage, contentType, source, sortOption, selectedTags]);
 
   // Pagination constants
   const ITEMS_PER_PAGE = 50;
@@ -157,33 +170,6 @@ export function BrowsePage() {
     return sortContent(response.items, sortOption);
   }, [response?.items, sortOption]);
 
-  // Update URL when filters change
-  useEffect(() => {
-    const newParams = new URLSearchParams();
-
-    if (currentPage > 1) {
-      newParams.set('page', currentPage.toString());
-    }
-
-    if (contentType) {
-      newParams.set('type', contentType);
-    }
-
-    if (source) {
-      newParams.set('source', source);
-    }
-
-    if (sortOption !== 'newest') {
-      newParams.set('sort', sortOption);
-    }
-
-    if (selectedTags.length > 0) {
-      newParams.set('tags', selectedTags.join(','));
-    }
-
-    setSearchParams(newParams);
-  }, [currentPage, contentType, source, sortOption, selectedTags, setSearchParams]);
-
   // Set page title
   useEffect(() => {
     document.title = 'Browse Content - Engram Knowledge Base';
@@ -191,27 +177,30 @@ export function BrowsePage() {
 
   // Handle filter changes — reset to page 1
   const handleContentTypeChange = (value: string) => {
-    if (value === 'all') {
-      setContentType(undefined);
-    } else {
-      setContentType(value as ContentType);
-    }
-    setSource(undefined);
-    setCurrentPage(1);
+    setSearchParams(buildParams({
+      page: 1,
+      type: value === 'all' ? '' : value,
+      source: '',  // always clear source when content type changes
+    }));
   };
 
   const handleSourceChange = (value: string) => {
-    if (value === 'all') {
-      setSource(undefined);
-    } else {
-      setSource(value);
-    }
-    setCurrentPage(1);
+    setSearchParams(buildParams({
+      page: 1,
+      source: value === 'all' ? '' : value,
+    }));
   };
 
   const handleSortChange = (value: string) => {
     setSortOption(value as SortOption);
-    setCurrentPage(1);
+    // Sort is local state; update URL for bookmarkability
+    const newParams = buildParams({ page: 1 });
+    if (value !== 'newest') {
+      newParams.set('sort', value);
+    } else {
+      newParams.delete('sort');
+    }
+    setSearchParams(newParams);
   };
 
   // Handle content click
@@ -221,7 +210,7 @@ export function BrowsePage() {
 
   // Handle pagination
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    setSearchParams(buildParams({ page }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -349,9 +338,7 @@ export function BrowsePage() {
             onAction={
               (contentType || source || selectedTags.length > 0)
                 ? () => {
-                    setContentType(undefined);
-                    setSource(undefined);
-                    setCurrentPage(1);
+                    setSearchParams(buildParams({ page: 1, type: '', source: '' }));
                   }
                 : undefined
             }

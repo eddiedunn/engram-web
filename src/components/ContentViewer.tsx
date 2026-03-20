@@ -62,9 +62,13 @@ export function ContentViewer({ content, onDelete, highlightChunk: _highlightChu
   const transcriptRef = useRef<HTMLDivElement>(null);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(content.text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(content.text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+    }
   };
 
   useEffect(() => {
