@@ -28,6 +28,7 @@ function getContentTypeColor(contentType: ContentType): string {
     podcast: 'bg-purple-500 text-white hover:bg-purple-600',
     document: 'bg-green-500 text-white hover:bg-green-600',
     note: 'bg-amber-500 text-white hover:bg-amber-600',
+    meeting: 'bg-indigo-500 text-white hover:bg-indigo-600',
     other: 'bg-gray-500 text-white hover:bg-gray-600',
   };
   return colors[contentType];
@@ -40,6 +41,7 @@ function formatContentType(type: ContentType): string {
     podcast: 'Podcast',
     document: 'Document',
     note: 'Note',
+    meeting: 'Meeting',
     other: 'Other',
   };
   return labels[type] || type;

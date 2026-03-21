@@ -36,6 +36,7 @@ const CONTENT_TYPES: ContentType[] = [
   'podcast',
   'document',
   'note',
+  'meeting',
   'other',
 ];
 
@@ -45,6 +46,7 @@ const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   podcast: 'Podcast',
   document: 'Document',
   note: 'Note',
+  meeting: 'Meeting',
   other: 'Other',
 };
 

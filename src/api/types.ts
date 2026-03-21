@@ -7,6 +7,7 @@ export const ContentType = {
   PODCAST: 'podcast',
   DOCUMENT: 'document',
   NOTE: 'note',
+  MEETING: 'meeting',
   OTHER: 'other',
 } as const;
 
