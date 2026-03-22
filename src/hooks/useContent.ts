@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { engramClient } from '../api/client';
-import type { Content } from '../api/types';
+import type { Content, ContentListResponse } from '../api/types';
 
 /**
  * React Query hook for fetching a single content item by ID
@@ -50,11 +50,15 @@ export function useDeleteContent() {
       queryClient.setQueryData(['content', contentId], undefined);
 
       // Optimistically remove the content from all content list queries
-      queryClient.setQueriesData<Content[]>(
+      queryClient.setQueriesData<ContentListResponse>(
         { queryKey: ['contentList'] },
         (old) => {
           if (!old) return old;
-          return old.filter((content) => content.id !== contentId);
+          return {
+            ...old,
+            items: old.items.filter((content) => content.content_id !== contentId),
+            total: old.total - 1,
+          };
         }
       );
 
