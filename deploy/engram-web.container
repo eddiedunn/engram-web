@@ -4,7 +4,7 @@ After=engram.service
 
 [Container]
 Image=registry.starbluesolutions.net/engram-web:latest
-PullPolicy=newer
+Pull=newer
 ContainerName=engram-web
 Network=engram-net
 PublishPort=3000:80
