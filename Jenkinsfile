@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build & Test') {
             agent {
                 docker {
                     image 'oven/bun:1'
@@ -44,6 +44,7 @@ pipeline {
             }
             steps {
                 sh 'bun install --frozen-lockfile'
+                sh 'bun run test:coverage'
                 sh 'bun run build'
             }
         }
@@ -61,7 +62,10 @@ pipeline {
                     sh '''sonar-scanner \
                         -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
                         -Dsonar.sources=src \
+                        -Dsonar.tests=src/__tests__ \
+                        -Dsonar.test.inclusions=src/**/*.test.ts,src/**/*.test.tsx \
                         -Dsonar.exclusions=node_modules/**,dist/** \
+                        -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
                         -Dsonar.host.url="${SONAR_HOST_URL}" \
                         -Dsonar.token="${SONAR_TOKEN}"'''
                 }
