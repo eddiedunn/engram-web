@@ -81,7 +81,7 @@ export function ContentViewer({ content, onDelete, highlightChunk: _highlightChu
 
   const handleDelete = () => {
     if (onDelete) {
-      onDelete(content.id);
+      onDelete(content.content_id);
       setDeleteDialogOpen(false);
     }
   };

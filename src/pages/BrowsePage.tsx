@@ -356,7 +356,7 @@ export function BrowsePage() {
                 <Card
                   key={content.id}
                   className="cursor-pointer hover:shadow-lg transition-shadow min-h-[44px]"
-                  onClick={() => handleContentClick(content.id)}
+                  onClick={() => handleContentClick(content.content_id)}
                 >
                   <CardHeader className="pb-3 p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
