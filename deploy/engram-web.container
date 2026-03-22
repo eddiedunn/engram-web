@@ -3,7 +3,8 @@ Description=Engram Web Frontend
 After=engram.service
 
 [Container]
-Image=localhost/engram-web:latest
+Image=registry.starbluesolutions.net/engram-web:latest
+PullPolicy=newer
 ContainerName=engram-web
 Network=engram-net
 PublishPort=3000:80

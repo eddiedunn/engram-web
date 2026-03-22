@@ -73,7 +73,8 @@ pipeline {
                     -i "127.0.0.1," \
                     "${DEPLOY_PLAYBOOK}" \
                     --connection local \
-                    -e "engram_web_src_dir=${WORKSPACE}"'''
+                    -e "engram_web_src_dir=${WORKSPACE}" \
+                    -e "build_number=${BUILD_NUMBER}"'''
             }
         }
     }
