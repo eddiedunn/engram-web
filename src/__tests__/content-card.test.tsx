@@ -136,13 +136,13 @@ describe('ContentCard', () => {
   it('navigates to content page on title click', () => {
     renderCard(makeResult())
     fireEvent.click(screen.getByText('Test Video Title'))
-    expect(mockNavigate).toHaveBeenCalledWith('/content/cid-1')
+    expect(mockNavigate).toHaveBeenCalledWith('/content/id-1')
   })
 
   it('navigates to content page on View Full click', () => {
     renderCard(makeResult())
     fireEvent.click(screen.getByText('View Full'))
-    expect(mockNavigate).toHaveBeenCalledWith('/content/cid-1')
+    expect(mockNavigate).toHaveBeenCalledWith('/content/id-1')
   })
 
   it('formats created_at date', () => {
