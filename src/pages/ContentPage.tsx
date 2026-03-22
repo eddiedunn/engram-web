@@ -60,8 +60,7 @@ export function ContentPage() {
   const handleDelete = async (contentId: string) => {
     try {
       await deleteContentMutation.mutateAsync(contentId);
-      // Redirect to search page on success
-      navigate('/');
+      navigate('/browse');
     } catch (error) {
       console.error('Failed to delete content:', error);
       // Error is already handled by the mutation
