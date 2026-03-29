@@ -16,7 +16,7 @@ pipeline {
         stage('Trivy Security Scan') {
             agent {
                 docker {
-                    image 'aquasec/trivy:latest'
+                    image 'registry.starbluesolutions.net/aquasec/trivy:0.69.3'
                     reuseNode true
                     args '--entrypoint="" -u root --network host'
                 }
@@ -37,7 +37,7 @@ pipeline {
         stage('Build & Test') {
             agent {
                 docker {
-                    image 'oven/bun:1'
+                    image 'registry.starbluesolutions.net/oven/bun:1'
                     reuseNode true
                     args '-u root --network host'
                 }
@@ -52,7 +52,7 @@ pipeline {
         stage('SonarQube Analysis') {
             agent {
                 docker {
-                    image 'sonarsource/sonar-scanner-cli:latest'
+                    image 'registry.starbluesolutions.net/sonarsource/sonar-scanner-cli:latest'
                     reuseNode true
                     args '-u root --network host'
                 }

@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM oven/bun:1 AS builder
+FROM registry.starbluesolutions.net/oven/bun:1 AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN bun run build
 
 # Stage 2: Production
-FROM nginx:alpine
+FROM registry.starbluesolutions.net/library/nginx:alpine
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
